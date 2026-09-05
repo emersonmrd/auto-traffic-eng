@@ -1,0 +1,50 @@
+name: auto-traffic-lab
+
+mgmt:
+  network: clab-traffic-net
+  ipv4-subnet: 172.28.100.0/24
+
+topology:
+  nodes:
+    # -------------------------------------------------------------
+    # 1. OPERADORAS DE TRÂNSITO SIMULADAS (Upstreams Centrais)
+    # -------------------------------------------------------------
+    operadora1:
+      kind: linux
+      image: frrouting/frr:latest
+      binds:
+        - configs/operadora1/daemons:/etc/frr/daemons
+        - configs/operadora1/frr.conf:/etc/frr/frr.conf
+
+    operadora2:
+      kind: linux
+      image: frrouting/frr:latest
+      binds:
+        - configs/operadora2/daemons:/etc/frr/daemons
+        - configs/operadora2/frr.conf:/etc/frr/frr.conf
+
+    # -------------------------------------------------------------
+    # 2. BORDA ISP - Cisco IOS Syntax (FRRouting - AS 65100)
+    # -------------------------------------------------------------
+    borda-isp:
+      kind: linux
+      image: frrouting/frr:latest
+      binds:
+        - configs/borda_isp/daemons:/etc/frr/daemons
+        - configs/borda_isp/frr.conf:/etc/frr/frr.conf
+
+    # -------------------------------------------------------------
+    # 3. BORDA ISP - MikroTik RouterOS (AS 65101)
+    # -------------------------------------------------------------
+    borda-mikrotik:
+      kind: mikrotik_ros
+      image: vrnetlab/vr-routeros:6.49.18
+
+  links:
+    # 1. Enlaces Borda FRR / Cisco Syntax (AS 65100)
+    - endpoints: ["borda-isp:eth1", "operadora1:eth1"]
+    - endpoints: ["borda-isp:eth2", "operadora2:eth1"]
+
+    # 2. Enlaces MikroTik (AS 65101)
+    - endpoints: ["borda-mikrotik:ether2", "operadora1:eth2"]
+    - endpoints: ["borda-mikrotik:ether3", "operadora2:eth2"]

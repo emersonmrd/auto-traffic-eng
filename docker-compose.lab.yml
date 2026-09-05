@@ -1,0 +1,22 @@
+services:
+  lab-box:
+    build:
+      context: ./lab
+      dockerfile: Dockerfile
+    container_name: auto-traffic-lab
+    hostname: lab-box
+    privileged: true
+    network_mode: host
+    pid: host
+    volumes:
+      - .:/workspace
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/run/netns:/var/run/netns
+      - ./imagens:/imagens:ro
+    environment:
+      - CLAB_LAB_DIR=/workspace/lab
+      - DOCKER_HOST=unix:///var/run/docker.sock
+    working_dir: /workspace
+    stdin_open: true
+    tty: true
+    command: /bin/bash
